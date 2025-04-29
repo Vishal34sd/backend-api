@@ -93,6 +93,6 @@ const deleteImageController = async(req , res)=>{
     }
 }
 
-module.exports = { uploadImageController , fetchImagesController};
+module.exports = { uploadImageController , fetchImagesController , deleteImageController};
 
 

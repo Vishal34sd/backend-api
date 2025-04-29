@@ -1,5 +1,6 @@
 const Image = require("../model/Image"); // Correct capitalization of the model
 const { uploadToCloudinary } = require("../helpers/cloudinaryHelper");
+const claudinary = require("../config/cloudinary");
 
 const uploadImageController = async (req, res) => {
     try {
@@ -55,5 +56,43 @@ const  fetchImagesController = async (req, res)=>{
         }); 
     }
 }
+const deleteImageController = async(req , res)=>{
+    try{
+        const getCurrentIdOfImageToBeDeleted = req.params.id;
+        const userId = req.userInfo.userId;
+
+        const image = await Image.findById(getCurrentIdOfImageToBeDeleted);
+
+        if(!image){
+            return res.status(404).json({
+                success : false,
+                message : "Image not found"
+            });
+        }
+        if(image.uploadedBy.toString()!==userId){
+            return res.status(401).json({
+                sucess : false , 
+                message : "You are not authorised to delete this image"
+            });
+        }
+        //delete this image first from your cloudinary storage
+        await claudinary.uploader.destroy(image.publicId);
+
+        //delete this image from mongodb database
+        await Image.findByIdAndUpdate(getCurrentIdOfImageToBeDeleted);
+        res.status(200).json({
+            success : true , 
+            message : "image deleted successfully from database"
+        })
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: "something went wrong" });
+    }
+}
 
 module.exports = { uploadImageController , fetchImagesController};
+
+
